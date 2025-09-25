@@ -15,7 +15,7 @@ export default function Admin() {
       <h2 className="mb-4 text-center fw-bold" style={{ color: "#00d8ff" }}>
         Dimensi Admin Panel
       </h2>
-
+      
       {/* Navigasi */}
       <div className="d-flex justify-content-center mb-4 flex-wrap gap-2">
         {["dashboard", "history", "reports", "settings"].map((tab) => (
