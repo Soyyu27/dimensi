@@ -13,7 +13,7 @@ export default function Admin() {
       style={{ minHeight: "100vh", background: "#121212", color: "#f1f1f1" }}
     >
       <h2 className="mb-4 text-center fw-bold" style={{ color: "#00d8ff" }}>
-        Dimensi Admin Panel
+        ✨ Dimensi Admin Panel
       </h2>
 
       {/* Navigasi */}
@@ -42,5 +42,6 @@ export default function Admin() {
         {activeTab === "settings" && <Settings />}
       </div>
     </div>
+    
   );
 }

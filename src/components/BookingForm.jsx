@@ -1,8 +1,9 @@
 import React, { useState } from "react";
-import { useBookings } from "../context/BookingContext"; 
+import { useBookings } from "../context/BookingContext";
+import axios from "axios";
 
 export default function BookingForm() {
-  const { bookingOpen, adminMessage, addBooking } = useBookings();
+  const { bookingOpen, adminMessage, addBooking, openHour, closeHour } = useBookings();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
@@ -11,24 +12,29 @@ export default function BookingForm() {
   const [notice, setNotice] = useState(null);
   const [loading, setLoading] = useState(false);
 
+  const API_URL = "http://localhost:8080/api/bookings"; // backend kamu
+
+  
   function validate() {
     if (!name || !email || !phone || !date || !time)
       return "Lengkapi semua field";
 
     const phoneRegex = /^[0-9]{10,15}$/;
-    if (!phoneRegex.test(phone))
-      return "Nomor HP harus angka (10-15 digit)";
+    if (!phoneRegex.test(phone)) return "Nomor HP harus angka (10-15 digit)";
 
     const sel = new Date(date + "T" + time);
     if (sel < new Date()) return "Tidak bisa memilih waktu lampau";
 
     const h = sel.getHours();
-    if (h < 9 || h >= 21) return "Jam operasional: 09:00 - 21:00";
+    if (h < openHour || h >= closeHour)
+      return `Jam operasional: ${openHour.toString().padStart(2, "0")}:00 - ${closeHour
+        .toString()
+        .padStart(2, "0")}:00`;
 
     return null;
   }
 
-  function submit(e) {
+  async function submit(e) {
     e.preventDefault();
     setNotice(null);
 
@@ -39,8 +45,9 @@ export default function BookingForm() {
     }
 
     setLoading(true);
-    setTimeout(() => {
-      addBooking({
+
+    try {
+      const res = await axios.post(API_URL, {
         customerName: name,
         customerEmail: email,
         customerPhone: phone,
@@ -48,17 +55,28 @@ export default function BookingForm() {
         bookingTime: time,
       });
 
+      addBooking(res.data); // simpan di context
+
       setNotice({
         type: "success",
         text: "Booking berhasil terkirim! Tunggu konfirmasi admin.",
       });
+
+      // reset form
       setName("");
       setEmail("");
       setPhone("");
       setDate("");
       setTime("09:00");
+    } catch (err) {
+      console.error(err);
+      setNotice({
+        type: "error",
+        text: "Gagal mengirim booking. Coba lagi.",
+      });
+    } finally {
       setLoading(false);
-    }, 800); // simulasi delay
+    }
   }
 
   return (
@@ -69,17 +87,36 @@ export default function BookingForm() {
       >
         <h3 className="mb-3 text-center">Booking Dimensi Hair Studio</h3>
 
-        {/* Jika booking ditutup */}
-        {!bookingOpen ? (
-          <div
-            className="alert alert-warning text-center"
-            style={{ fontWeight: "500" }}
-          >
-            Booking sedang <b>ditutup</b>. Silakan cek kembali nanti.
+        {/* Kalau booking ditutup */}
+        {!bookingOpen && (
+          <div>
+            <div
+              className="alert alert-warning text-center mb-3"
+              style={{ fontWeight: "500" }}
+            >
+              Booking sedang <b>ditutup</b>. Silakan cek kembali nanti.
+            </div>
+            {/* Pesan admin tetap tampil walau booking tutup */}
+            {adminMessage && (
+              <div
+                className="alert"
+                style={{
+                  background: "rgba(59,130,246,0.12)",
+                  border: 0,
+                  color: "#1e40af",
+                  fontWeight: "500",
+                }}
+              >
+                {adminMessage}
+              </div>
+            )}
           </div>
-        ) : (
+        )}
+
+        {/* Kalau booking dibuka */}
+        {bookingOpen && (
           <form onSubmit={submit}>
-            {/* Pesan admin */}
+            {/* Pesan admin tampil di atas form */}
             {adminMessage && (
               <div
                 className="alert mb-3"
