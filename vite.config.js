@@ -1,9 +1,8 @@
-import {
-  defineConfig
-} from 'vite'
+import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 
+// https://vitejs.dev/config/
 export default defineConfig({
-  base: '/dimensi/', // HARUS sesuai nama repo
-  plugins: [react()]
+  plugins: [react()],
+  base: '/', // penting kalau nanti project ini dideploy ke subfolder
 })
